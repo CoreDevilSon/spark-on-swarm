@@ -3,11 +3,14 @@ version: '3.8'
 services:
   # HDFS NameNode
   namenode:
-    image: bitnami/hadoop:3.3
+    image: bitnami/hadoop:3.3.4
     hostname: namenode
     environment:
       - HADOOP_CFG_DFS_NAMENODE_NAME_DIR=/hadoop/dfs/name
       - HDFS_CONF_DFS_REPLICATION=2
+      - HADOOP_CFG_FS_DEFAULTFS=hdfs://namenode:8020
+      - HADOOP_CFG_DFS_NAMENODE_HTTP_ADDRESS=0.0.0.0:9870
+      - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - "9870:9870"
       - "8020:8020"
@@ -20,52 +23,22 @@ services:
       placement:
         constraints:
           - node.labels.role == master
-
-  # Spark Master
-  spark-master:
-    image: bitnami/spark:3.4
-    hostname: spark-master
-    environment:
-      - SPARK_MODE=master
-      - SPARK_MASTER_HOST=spark-master
-      - SPARK_MASTER_PORT_NUMBER=7077
-      - SPARK_MASTER_WEBUI_PORT=8080
-    ports:
-      - "8080:8080"
-      - "7077:7077"
-    volumes:
-      - ./configs/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
-    networks:
-      - spark-net
-    deploy:
-      placement:
-        constraints:
-          - node.labels.role == master
-
-  # Spark History Server
-  spark-history:
-    image: bitnami/spark:3.4
-    hostname: spark-history
-    environment:
-      - SPARK_MODE=history-server
-    ports:
-      - "18080:18080"
-    volumes:
-      - ./configs/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
-      - spark_events:/tmp/spark-events
-    networks:
-      - spark-net
-    deploy:
-      placement:
-        constraints:
-          - node.labels.role == master
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 3
 
   # HDFS DataNodes
   datanode:
-    image: bitnami/hadoop:3.3
+    image: bitnami/hadoop:3.3.4
     environment:
       - HADOOP_CFG_DFS_DATANODE_DATA_DIR=/hadoop/dfs/data
       - HDFS_CONF_DFS_REPLICATION=2
+      - HADOOP_CFG_FS_DEFAULTFS=hdfs://namenode:8020
+      - HADOOP_CFG_DFS_DATANODE_HTTP_ADDRESS=0.0.0.0:9864
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "9864:9864"
     volumes:
       - datanode_data:/hadoop/dfs/data
       - ./configs:/opt/bitnami/hadoop/etc/hadoop/conf.d:ro
@@ -78,16 +51,49 @@ services:
       placement:
         constraints:
           - node.labels.role == worker
+        preferences:
+          - spread: node.id
+      restart_policy:
+        condition: on-failure
+        delay: 15s
+        max_attempts: 5
+
+  # Spark Master
+  spark-master:
+    image: bitnami/spark:3.5.0
+    hostname: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT_NUMBER=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
+      - SPARK_DAEMON_MEMORY=1g
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+      - ./configs/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
+      - spark_events:/tmp/spark-events
+    networks:
+      - spark-net
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == master
+      restart_policy:
+        condition: on-failure
+        delay: 10s
 
   # Spark Workers
   spark-worker:
-    image: bitnami/spark:3.4
+    image: bitnami/spark:3.5.0
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=2g
       - SPARK_WORKER_CORES=2
       - SPARK_WORKER_WEBUI_PORT=8081
+      - SPARK_DAEMON_MEMORY=1g
     volumes:
       - ./configs/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
       - spark_events:/tmp/spark-events
@@ -104,17 +110,51 @@ services:
           - spread: node.id
       restart_policy:
         condition: on-failure
-        delay: 5s
+        delay: 15s
+        max_attempts: 5
 
-  # YARN Resource Manager (Optional - if you want YARN mode)
+  # Spark History Server
+  spark-history:
+    image: bitnami/spark:3.5.0
+    hostname: spark-history
+    environment:
+      - SPARK_MODE=history-server
+      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=hdfs://namenode:8020/tmp/spark-events
+    ports:
+      - "18080:18080"
+    volumes:
+      - ./configs/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
+      - spark_events:/tmp/spark-events
+    networks:
+      - spark-net
+    depends_on:
+      - namenode
+      - spark-master
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == master
+      restart_policy:
+        condition: on-failure
+        delay: 20s
+
+  # YARN Resource Manager (Optional - for YARN mode)
   yarn-resourcemanager:
-    image: bitnami/hadoop:3.3
+    image: bitnami/hadoop:3.3.4
     hostname: yarn-resourcemanager
     environment:
+      - HADOOP_CFG_FS_DEFAULTFS=hdfs://namenode:8020
       - YARN_CONF_YARN_RESOURCEMANAGER_HOSTNAME=yarn-resourcemanager
       - YARN_CONF_YARN_RESOURCEMANAGER_WEBAPP_ADDRESS=0.0.0.0:8088
+      - YARN_CONF_YARN_RESOURCEMANAGER_ADDRESS=yarn-resourcemanager:8032
+      - YARN_CONF_YARN_RESOURCEMANAGER_SCHEDULER_ADDRESS=yarn-resourcemanager:8030
+      - YARN_CONF_YARN_RESOURCEMANAGER_RESOURCE_TRACKER_ADDRESS=yarn-resourcemanager:8031
+      - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - "8088:8088"
+      - "8032:8032"
+      - "8030:8030"
+      - "8031:8031"
     volumes:
       - ./configs:/opt/bitnami/hadoop/etc/hadoop/conf.d:ro
     networks:
@@ -125,30 +165,55 @@ services:
       placement:
         constraints:
           - node.labels.role == master
+      restart_policy:
+        condition: on-failure
+        delay: 20s
 
-  # YARN Node Managers (Optional - if you want YARN mode)
+  # YARN Node Managers (Optional - for YARN mode)
   yarn-nodemanager:
-    image: bitnami/hadoop:3.3
+    image: bitnami/hadoop:3.3.4
     environment:
+      - HADOOP_CFG_FS_DEFAULTFS=hdfs://namenode:8020
       - YARN_CONF_YARN_RESOURCEMANAGER_HOSTNAME=yarn-resourcemanager
       - YARN_CONF_YARN_NODEMANAGER_RESOURCE_MEMORY_MB=2048
       - YARN_CONF_YARN_NODEMANAGER_RESOURCE_CPU_VCORES=2
+      - YARN_CONF_YARN_NODEMANAGER_AUX_SERVICES=mapreduce_shuffle
+      - YARN_CONF_YARN_NODEMANAGER_WEBAPP_ADDRESS=0.0.0.0:8042
+      - ALLOW_EMPTY_PASSWORD=yes
+    ports:
+      - "8042:8042"
     volumes:
       - ./configs:/opt/bitnami/hadoop/etc/hadoop/conf.d:ro
+      - yarn_logs:/tmp/logs
     networks:
       - spark-net
     depends_on:
       - yarn-resourcemanager
+      - namenode
     deploy:
       replicas: 4
       placement:
         constraints:
           - node.labels.role == worker
+        preferences:
+          - spread: node.id
+      restart_policy:
+        condition: on-failure
+        delay: 25s
 
 volumes:
   namenode_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/hadoop/namenode
   datanode_data:
+    driver: local
   spark_events:
+    driver: local
+  yarn_logs:
+    driver: local
 
 networks:
   spark-net:
