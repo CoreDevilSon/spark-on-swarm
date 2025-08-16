@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  hdfs-master:
+    build: .
+    command: hdfs-master
+    hostname: hdfs-master
+    ports:
+      - "9870:9870"
+      - "9000:9000"
+    networks:
+      - spark-net
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == master
+
+  yarn-master:
+    build: .
+    command: yarn-master
+    hostname: yarn-master
+    ports:
+      - "8088:8088"
+    networks:
+      - spark-net
+    depends_on:
+      - hdfs-master
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == master
+
+  spark-history:
+    build: .
+    command: spark-history
+    hostname: spark-history
+    ports:
+      - "18080:18080"
+    networks:
+      - spark-net
+    depends_on:
+      - hdfs-master
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == master
+
+  worker:
+    build: .
+    command: >
+      sh -c "
+      $HADOOP_HOME/bin/hdfs datanode &
+      $HADOOP_HOME/bin/yarn nodemanager &
+      wait
+      "
+    networks:
+      - spark-net
+    depends_on:
+      - hdfs-master
+      - yarn-master
+    deploy:
+      replicas: 4
+      placement:
+        constraints:
+          - node.labels.role == worker
+
+networks:
+  spark-net:
+    driver: overlay
+    attachable: true
