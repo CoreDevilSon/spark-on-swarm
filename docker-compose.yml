@@ -3,12 +3,11 @@ version: '3.8'
 services:
   # HDFS NameNode
   namenode:
-    image: apache/hadoop:3.3.6
+    image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
     hostname: namenode
-    command: ["hdfs", "namenode"]
     environment:
       - CLUSTER_NAME=hadoop-cluster
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - CORE_CONF_hadoop_http_staticuser_user=root
       - CORE_CONF_hadoop_proxyuser_hue_hosts=*
       - CORE_CONF_hadoop_proxyuser_hue_groups=*
@@ -16,14 +15,11 @@ services:
       - HDFS_CONF_dfs_permissions_enabled=false
       - HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check=false
       - HDFS_CONF_dfs_replication=2
-      - HDFS_CONF_dfs_namenode_name_dir=/hadoop/dfs/name
-      - HDFS_CONF_dfs_namenode_http_address=0.0.0.0:9870
     ports:
       - "9870:9870"
-      - "8020:8020"
+      - "9000:9000"
     volumes:
       - namenode_data:/hadoop/dfs/name
-      - ./configs:/opt/hadoop/etc/hadoop:ro
     networks:
       - spark-net
     deploy:
@@ -37,27 +33,16 @@ services:
 
   # HDFS DataNodes
   datanode:
-    image: apache/hadoop:3.3.6
-    command: ["hdfs", "datanode"]
+    image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     environment:
-      - CLUSTER_NAME=hadoop-cluster
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - CORE_CONF_hadoop_http_staticuser_user=root
       - HDFS_CONF_dfs_webhdfs_enabled=true
       - HDFS_CONF_dfs_permissions_enabled=false
       - HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check=false
       - HDFS_CONF_dfs_replication=2
-      - HDFS_CONF_dfs_datanode_data_dir=/hadoop/dfs/data
-      - HDFS_CONF_dfs_datanode_http_address=0.0.0.0:9864
-      - HDFS_CONF_dfs_datanode_address=0.0.0.0:9866
-      - HDFS_CONF_dfs_datanode_ipc_address=0.0.0.0:9867
-    ports:
-      - "9864"
-      - "9866"
-      - "9867"
     volumes:
       - datanode_data:/hadoop/dfs/data
-      - ./configs:/opt/hadoop/etc/hadoop:ro
     networks:
       - spark-net
     depends_on:
@@ -76,14 +61,12 @@ services:
 
   # YARN Resource Manager
   yarn-resourcemanager:
-    image: apache/hadoop:3.3.6
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
     hostname: yarn-resourcemanager
-    command: ["yarn", "resourcemanager"]
     environment:
-      - CLUSTER_NAME=hadoop-cluster
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - YARN_CONF_yarn_log___aggregation___enable=true
-      - YARN_CONF_yarn_log_server_url=http://yarn-timelineserver:8188/applicationhistory/logs/
+      - YARN_CONF_yarn_log_server_url=http://historyserver:8188/applicationhistory/logs/
       - YARN_CONF_yarn_resourcemanager_recovery_enabled=true
       - YARN_CONF_yarn_resourcemanager_store_class=org.apache.hadoop.yarn.server.resourcemanager.recovery.FileSystemRMStateStore
       - YARN_CONF_yarn_resourcemanager_hostname=yarn-resourcemanager
@@ -93,19 +76,17 @@ services:
       - YARN_CONF_yarn_resourcemanager_webapp_address=0.0.0.0:8088
       - YARN_CONF_yarn_timeline___service_enabled=true
       - YARN_CONF_yarn_timeline___service_generic___application___history_enabled=true
-      - YARN_CONF_mapreduce_map_output_compress=true
-      - YARN_CONF_mapred_map_output_compress_codec=org.apache.hadoop.io.compress.SnappyCodec
       - YARN_CONF_yarn_nodemanager_resource_memory___mb=4096
       - YARN_CONF_yarn_scheduler_maximum___allocation___mb=4096
       - YARN_CONF_yarn_scheduler_minimum___allocation___mb=64
       - YARN_CONF_yarn_nodemanager_vmem___check___enabled=false
+      - YARN_CONF_mapreduce_map_output_compress=true
+      - YARN_CONF_mapred_map_output_compress_codec=org.apache.hadoop.io.compress.SnappyCodec
     ports:
       - "8088:8088"
       - "8032:8032"
       - "8030:8030"
       - "8031:8031"
-    volumes:
-      - ./configs:/opt/hadoop/etc/hadoop:ro
     networks:
       - spark-net
     depends_on:
@@ -120,13 +101,11 @@ services:
 
   # YARN Node Managers
   yarn-nodemanager:
-    image: apache/hadoop:3.3.6
-    command: ["yarn", "nodemanager"]
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
     environment:
-      - CLUSTER_NAME=hadoop-cluster
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - YARN_CONF_yarn_log___aggregation___enable=true
-      - YARN_CONF_yarn_log_server_url=http://yarn-timelineserver:8188/applicationhistory/logs/
+      - YARN_CONF_yarn_log_server_url=http://historyserver:8188/applicationhistory/logs/
       - YARN_CONF_yarn_resourcemanager_hostname=yarn-resourcemanager
       - YARN_CONF_yarn_resourcemanager_address=yarn-resourcemanager:8032
       - YARN_CONF_yarn_resourcemanager_scheduler_address=yarn-resourcemanager:8030
@@ -141,10 +120,7 @@ services:
       - YARN_CONF_mapreduce_map_output_compress=true
       - YARN_CONF_mapred_map_output_compress_codec=org.apache.hadoop.io.compress.SnappyCodec
       - YARN_CONF_yarn_nodemanager_vmem___check___enabled=false
-    ports:
-      - "8042"
     volumes:
-      - ./configs:/opt/hadoop/etc/hadoop:ro
       - yarn_logs:/opt/hadoop/logs/userlogs
     networks:
       - spark-net
@@ -163,25 +139,21 @@ services:
         delay: 30s
 
   # MapReduce History Server
-  mapreduce-historyserver:
-    image: apache/hadoop:3.3.6
-    hostname: mapreduce-historyserver
-    command: ["mapred", "historyserver"]
+  historyserver:
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+    hostname: historyserver
     environment:
-      - CLUSTER_NAME=hadoop-cluster
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:8020
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - YARN_CONF_yarn_resourcemanager_hostname=yarn-resourcemanager
       - YARN_CONF_yarn_log___aggregation___enable=true
       - YARN_CONF_yarn_timeline___service_enabled=true
-      - YARN_CONF_mapreduce_jobhistory_address=mapreduce-historyserver:10020
+      - YARN_CONF_mapreduce_jobhistory_address=historyserver:10020
       - YARN_CONF_mapreduce_jobhistory_webapp_address=0.0.0.0:19888
       - YARN_CONF_mapreduce_jobhistory_intermediate___done___dir=/mr-history/tmp
       - YARN_CONF_mapreduce_jobhistory_done___dir=/mr-history/done
     ports:
       - "19888:19888"
       - "10020:10020"
-    volumes:
-      - ./configs:/opt/hadoop/etc/hadoop:ro
     networks:
       - spark-net
     depends_on:
@@ -259,7 +231,7 @@ services:
     hostname: spark-history
     environment:
       - SPARK_MODE=history-server
-      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=hdfs://namenode:8020/tmp/spark-events
+      - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=hdfs://namenode:9000/tmp/spark-events
     ports:
       - "18080:18080"
     volumes:
