@@ -1,13 +1,19 @@
 version: '3.8'
 
 services:
-  hdfs-master:
-    build: .
-    command: hdfs-master
-    hostname: hdfs-master
+  # HDFS NameNode
+  namenode:
+    image: bitnami/hadoop:3.3
+    hostname: namenode
+    environment:
+      - HADOOP_CFG_DFS_NAMENODE_NAME_DIR=/hadoop/dfs/name
+      - HDFS_CONF_DFS_REPLICATION=2
     ports:
       - "9870:9870"
-      - "9000:9000"
+      - "8020:8020"
+    volumes:
+      - namenode_data:/hadoop/dfs/name
+      - ./configs:/opt/bitnami/hadoop/etc/hadoop/conf.d:ro
     networks:
       - spark-net
     deploy:
@@ -15,54 +21,129 @@ services:
         constraints:
           - node.labels.role == master
 
-  yarn-master:
-    build: .
-    command: yarn-master
-    hostname: yarn-master
+  # Spark Master
+  spark-master:
+    image: bitnami/spark:3.4
+    hostname: spark-master
+    environment:
+      - SPARK_MODE=master
+      - SPARK_MASTER_HOST=spark-master
+      - SPARK_MASTER_PORT_NUMBER=7077
+      - SPARK_MASTER_WEBUI_PORT=8080
     ports:
-      - "8088:8088"
+      - "8080:8080"
+      - "7077:7077"
+    volumes:
+      - ./configs/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
     networks:
       - spark-net
-    depends_on:
-      - hdfs-master
     deploy:
       placement:
         constraints:
           - node.labels.role == master
 
+  # Spark History Server
   spark-history:
-    build: .
-    command: spark-history
+    image: bitnami/spark:3.4
     hostname: spark-history
+    environment:
+      - SPARK_MODE=history-server
     ports:
       - "18080:18080"
+    volumes:
+      - ./configs/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
+      - spark_events:/tmp/spark-events
     networks:
       - spark-net
-    depends_on:
-      - hdfs-master
     deploy:
       placement:
         constraints:
           - node.labels.role == master
 
-  worker:
-    build: .
-    command: >
-      sh -c "
-      $HADOOP_HOME/bin/hdfs datanode &
-      $HADOOP_HOME/bin/yarn nodemanager &
-      wait
-      "
+  # HDFS DataNodes
+  datanode:
+    image: bitnami/hadoop:3.3
+    environment:
+      - HADOOP_CFG_DFS_DATANODE_DATA_DIR=/hadoop/dfs/data
+      - HDFS_CONF_DFS_REPLICATION=2
+    volumes:
+      - datanode_data:/hadoop/dfs/data
+      - ./configs:/opt/bitnami/hadoop/etc/hadoop/conf.d:ro
     networks:
       - spark-net
     depends_on:
-      - hdfs-master
-      - yarn-master
+      - namenode
     deploy:
       replicas: 4
       placement:
         constraints:
           - node.labels.role == worker
+
+  # Spark Workers
+  spark-worker:
+    image: bitnami/spark:3.4
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark-master:7077
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_WORKER_CORES=2
+      - SPARK_WORKER_WEBUI_PORT=8081
+    volumes:
+      - ./configs/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
+      - spark_events:/tmp/spark-events
+    networks:
+      - spark-net
+    depends_on:
+      - spark-master
+    deploy:
+      replicas: 4
+      placement:
+        constraints:
+          - node.labels.role == worker
+
+  # YARN Resource Manager (Optional - if you want YARN mode)
+  yarn-resourcemanager:
+    image: bitnami/hadoop:3.3
+    hostname: yarn-resourcemanager
+    environment:
+      - YARN_CONF_YARN_RESOURCEMANAGER_HOSTNAME=yarn-resourcemanager
+      - YARN_CONF_YARN_RESOURCEMANAGER_WEBAPP_ADDRESS=0.0.0.0:8088
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./configs:/opt/bitnami/hadoop/etc/hadoop/conf.d:ro
+    networks:
+      - spark-net
+    depends_on:
+      - namenode
+    deploy:
+      placement:
+        constraints:
+          - node.labels.role == master
+
+  # YARN Node Managers (Optional - if you want YARN mode)
+  yarn-nodemanager:
+    image: bitnami/hadoop:3.3
+    environment:
+      - YARN_CONF_YARN_RESOURCEMANAGER_HOSTNAME=yarn-resourcemanager
+      - YARN_CONF_YARN_NODEMANAGER_RESOURCE_MEMORY_MB=2048
+      - YARN_CONF_YARN_NODEMANAGER_RESOURCE_CPU_VCORES=2
+    volumes:
+      - ./configs:/opt/bitnami/hadoop/etc/hadoop/conf.d:ro
+    networks:
+      - spark-net
+    depends_on:
+      - yarn-resourcemanager
+    deploy:
+      replicas: 4
+      placement:
+        constraints:
+          - node.labels.role == worker
+
+volumes:
+  namenode_data:
+  datanode_data:
+  spark_events:
 
 networks:
   spark-net:

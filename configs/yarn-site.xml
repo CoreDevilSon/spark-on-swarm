@@ -1,27 +1,43 @@
 <?xml version="1.0"?>
 <configuration>
     <property>
-        <name>yarn.resourcemanager.hostname</name>
-        <value>yarn-master</value>
+        <n>yarn.resourcemanager.hostname</n>
+        <value>yarn-resourcemanager</value>
     </property>
     <property>
-        <name>yarn.nodemanager.aux-services</name>
+        <n>yarn.resourcemanager.address</n>
+        <value>yarn-resourcemanager:8032</value>
+    </property>
+    <property>
+        <n>yarn.resourcemanager.scheduler.address</n>
+        <value>yarn-resourcemanager:8030</value>
+    </property>
+    <property>
+        <n>yarn.resourcemanager.resource-tracker.address</n>
+        <value>yarn-resourcemanager:8031</value>
+    </property>
+    <property>
+        <n>yarn.resourcemanager.webapp.address</n>
+        <value>yarn-resourcemanager:8088</value>
+    </property>
+    <property>
+        <n>yarn.nodemanager.aux-services</n>
         <value>mapreduce_shuffle</value>
     </property>
     <property>
-        <name>yarn.nodemanager.resource.memory-mb</name>
-        <value>1536</value>
+        <n>yarn.nodemanager.resource.memory-mb</n>
+        <value>2048</value>
     </property>
     <property>
-        <name>yarn.nodemanager.resource.cpu-vcores</name>
-        <value>1</value>
+        <n>yarn.nodemanager.resource.cpu-vcores</n>
+        <value>2</value>
     </property>
     <property>
-        <name>yarn.scheduler.maximum-allocation-mb</name>
-        <value>1536</value>
+        <n>yarn.scheduler.maximum-allocation-mb</n>
+        <value>2048</value>
     </property>
     <property>
-        <name>yarn.application.classpath</name>
-        <value>$HADOOP_HOME/etc/hadoop:$HADOOP_HOME/share/hadoop/common/*:$HADOOP_HOME/share/hadoop/common/lib/*:$HADOOP_HOME/share/hadoop/hdfs/*:$HADOOP_HOME/share/hadoop/hdfs/lib/*:$HADOOP_HOME/share/hadoop/mapreduce/*:$HADOOP_HOME/share/hadoop/mapreduce/lib/*:$HADOOP_HOME/share/hadoop/yarn/*:$HADOOP_HOME/share/hadoop/yarn/lib/*</value>
+        <n>yarn.application.classpath</n>
+        <value>/opt/bitnami/hadoop/etc/hadoop:/opt/bitnami/hadoop/share/hadoop/common/*:/opt/bitnami/hadoop/share/hadoop/common/lib/*:/opt/bitnami/hadoop/share/hadoop/hdfs/*:/opt/bitnami/hadoop/share/hadoop/hdfs/lib/*:/opt/bitnami/hadoop/share/hadoop/mapreduce/*:/opt/bitnami/hadoop/share/hadoop/mapreduce/lib/*:/opt/bitnami/hadoop/share/hadoop/yarn/*:/opt/bitnami/hadoop/share/hadoop/yarn/lib/*</value>
     </property>
 </configuration>
