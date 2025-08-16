@@ -1,43 +1,15 @@
 <?xml version="1.0"?>
 <configuration>
     <property>
-        <n>yarn.resourcemanager.hostname</n>
+        <name>yarn.resourcemanager.hostname</name>
         <value>yarn-resourcemanager</value>
     </property>
     <property>
-        <n>yarn.resourcemanager.address</n>
-        <value>yarn-resourcemanager:8032</value>
-    </property>
-    <property>
-        <n>yarn.resourcemanager.scheduler.address</n>
-        <value>yarn-resourcemanager:8030</value>
-    </property>
-    <property>
-        <n>yarn.resourcemanager.resource-tracker.address</n>
-        <value>yarn-resourcemanager:8031</value>
-    </property>
-    <property>
-        <n>yarn.resourcemanager.webapp.address</n>
-        <value>yarn-resourcemanager:8088</value>
-    </property>
-    <property>
-        <n>yarn.nodemanager.aux-services</n>
+        <name>yarn.nodemanager.aux-services</name>
         <value>mapreduce_shuffle</value>
     </property>
     <property>
-        <n>yarn.nodemanager.resource.memory-mb</n>
-        <value>2048</value>
-    </property>
-    <property>
-        <n>yarn.nodemanager.resource.cpu-vcores</n>
-        <value>2</value>
-    </property>
-    <property>
-        <n>yarn.scheduler.maximum-allocation-mb</n>
-        <value>2048</value>
-    </property>
-    <property>
-        <n>yarn.application.classpath</n>
-        <value>/opt/bitnami/hadoop/etc/hadoop:/opt/bitnami/hadoop/share/hadoop/common/*:/opt/bitnami/hadoop/share/hadoop/common/lib/*:/opt/bitnami/hadoop/share/hadoop/hdfs/*:/opt/bitnami/hadoop/share/hadoop/hdfs/lib/*:/opt/bitnami/hadoop/share/hadoop/mapreduce/*:/opt/bitnami/hadoop/share/hadoop/mapreduce/lib/*:/opt/bitnami/hadoop/share/hadoop/yarn/*:/opt/bitnami/hadoop/share/hadoop/yarn/lib/*</value>
+        <name>yarn.nodemanager.vmem-check-enabled</name>
+        <value>false</value>
     </property>
 </configuration>

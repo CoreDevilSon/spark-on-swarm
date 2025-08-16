@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <configuration>
     <property>
-        <n>fs.defaultFS</n>
+        <name>fs.defaultFS</name>
         <value>hdfs://namenode:8020</value>
     </property>
     <property>
-        <n>hadoop.tmp.dir</n>
-        <value>/tmp/hadoop</value>
+        <name>hadoop.http.staticuser.user</name>
+        <value>root</value>
     </property>
 </configuration>
