@@ -13,7 +13,8 @@ services:
       - CORE_CONF_hadoop_proxyuser_hue_groups=*
       - HDFS_CONF_dfs_webhdfs_enabled=true
       - HDFS_CONF_dfs_permissions_enabled=false
-      - HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check=false
+      # Corrected double underscores
+      - HDFS_CONF_dfs_namenode_datanode_registration_ip__hostname__check=false
       - HDFS_CONF_dfs_replication=2
     ports:
       - "9870:9870"
@@ -39,9 +40,9 @@ services:
       - CORE_CONF_hadoop_http_staticuser_user=root
       - HDFS_CONF_dfs_webhdfs_enabled=true
       - HDFS_CONF_dfs_permissions_enabled=false
-      - HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check=false
-      - HDFS_CONF_dfs_replication=2
-      # Explicitly add this to ensure the DataNode can find the NameNode's RPC port
+      # Corrected double underscores
+      - HDFS_CONF_dfs_namenode_datanode_registration_ip__hostname__check=false
+      # Removed redundant replication factor setting
       - HDFS_CONF_dfs_namenode_rpc_address=namenode:9000
     volumes:
       - datanode_data:/hadoop/dfs/data
@@ -67,25 +68,24 @@ services:
     hostname: yarn-resourcemanager
     environment:
       - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
-      - YARN_CONF_yarn_log___aggregation___enable=true
+      # Corrected single underscores for dot notation
+      - YARN_CONF_yarn_log_aggregation_enable=true
       - YARN_CONF_yarn_log_server_url=http://historyserver:8188/applicationhistory/logs/
       - YARN_CONF_yarn_resourcemanager_recovery_enabled=true
       - YARN_CONF_yarn_resourcemanager_store_class=org.apache.hadoop.yarn.server.resourcemanager.recovery.FileSystemRMStateStore
       - YARN_CONF_yarn_resourcemanager_hostname=yarn-resourcemanager
       - YARN_CONF_yarn_resourcemanager_address=yarn-resourcemanager:8032
       - YARN_CONF_yarn_resourcemanager_scheduler_address=yarn-resourcemanager:8030
-      - YARN_CONF_yarn_resourcemanager_resource___tracker_address=yarn-resourcemanager:8031
+      - YARN_CONF_yarn_resourcemanager_resource_tracker_address=yarn-resourcemanager:8031
       - YARN_CONF_yarn_resourcemanager_webapp_address=0.0.0.0:8088
-      - YARN_CONF_yarn_timeline___service_enabled=true
-      - YARN_CONF_yarn_timeline___service_generic___application___history_enabled=true
-      - YARN_CONF_yarn_nodemanager_resource_memory___mb=4096
-      - YARN_CONF_yarn_scheduler_maximum___allocation___mb=4096
-      - YARN_CONF_yarn_scheduler_minimum___allocation___mb=64
-      - YARN_CONF_yarn_nodemanager_vmem___check___enabled=false
+      - YARN_CONF_yarn_timeline_service_enabled=true
+      - YARN_CONF_yarn_timeline_service_generic_application_history_enabled=true
+      - YARN_CONF_yarn_nodemanager_resource_memory_mb=4096
+      - YARN_CONF_yarn_scheduler_maximum_allocation_mb=4096
+      - YARN_CONF_yarn_scheduler_minimum_allocation_mb=64
+      - YARN_CONF_yarn_nodemanager_vmem_check_enabled=false
       - YARN_CONF_mapreduce_map_output_compress=true
       - YARN_CONF_mapred_map_output_compress_codec=org.apache.hadoop.io.compress.SnappyCodec
-      # Explicitly add this to ensure the DataNode can find the NameNode's RPC port
-      - HDFS_CONF_dfs_namenode_rpc_address=namenode:9000
     ports:
       - "8088:8088"
       - "8032:8032"
@@ -108,24 +108,23 @@ services:
     image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
     environment:
       - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
-      - YARN_CONF_yarn_log___aggregation___enable=true
+      # Corrected single underscores for dot notation
+      - YARN_CONF_yarn_log_aggregation_enable=true
       - YARN_CONF_yarn_log_server_url=http://historyserver:8188/applicationhistory/logs/
       - YARN_CONF_yarn_resourcemanager_hostname=yarn-resourcemanager
       - YARN_CONF_yarn_resourcemanager_address=yarn-resourcemanager:8032
       - YARN_CONF_yarn_resourcemanager_scheduler_address=yarn-resourcemanager:8030
-      - YARN_CONF_yarn_resourcemanager_resource___tracker_address=yarn-resourcemanager:8031
-      - YARN_CONF_yarn_nodemanager_aux___services=mapreduce_shuffle
-      - YARN_CONF_yarn_nodemanager_aux___services_mapreduce___shuffle_class=org.apache.hadoop.mapred.ShuffleHandler
-      - YARN_CONF_yarn_nodemanager_resource_memory___mb=2048
-      - YARN_CONF_yarn_nodemanager_resource_cpu___vcores=2
-      - YARN_CONF_yarn_nodemanager_disk___health___checker_max___disk___utilization___per___disk___percentage=98.5
-      - YARN_CONF_yarn_nodemanager_remote___app___log___dir=/app-logs
+      - YARN_CONF_yarn_resourcemanager_resource_tracker_address=yarn-resourcemanager:8031
+      - YARN_CONF_yarn_nodemanager_aux_services=mapreduce_shuffle
+      - YARN_CONF_yarn_nodemanager_aux_services_mapreduce_shuffle_class=org.apache.hadoop.mapred.ShuffleHandler
+      - YARN_CONF_yarn_nodemanager_resource_memory_mb=2048
+      - YARN_CONF_yarn_nodemanager_resource_cpu_vcores=2
+      - YARN_CONF_yarn_nodemanager_disk_health_checker_max_disk_utilization_per_disk_percentage=98.5
+      - YARN_CONF_yarn_nodemanager_remote_app_log_dir=/app-logs
       - YARN_CONF_yarn_nodemanager_webapp_address=0.0.0.0:8042
       - YARN_CONF_mapreduce_map_output_compress=true
       - YARN_CONF_mapred_map_output_compress_codec=org.apache.hadoop.io.compress.SnappyCodec
-      - YARN_CONF_yarn_nodemanager_vmem___check___enabled=false
-      # Explicitly add this to ensure the DataNode can find the NameNode's RPC port
-      - HDFS_CONF_dfs_namenode_rpc_address=namenode:9000
+      - YARN_CONF_yarn_nodemanager_vmem_check_enabled=false
     volumes:
       - yarn_logs:/opt/hadoop/logs/userlogs
     networks:
@@ -151,14 +150,13 @@ services:
     environment:
       - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - YARN_CONF_yarn_resourcemanager_hostname=yarn-resourcemanager
-      - YARN_CONF_yarn_log___aggregation___enable=true
-      - YARN_CONF_yarn_timeline___service_enabled=true
+      # Corrected single underscores for dot notation
+      - YARN_CONF_yarn_log_aggregation_enable=true
+      - YARN_CONF_yarn_timeline_service_enabled=true
       - YARN_CONF_mapreduce_jobhistory_address=historyserver:10020
       - YARN_CONF_mapreduce_jobhistory_webapp_address=0.0.0.0:19888
-      - YARN_CONF_mapreduce_jobhistory_intermediate___done___dir=/mr-history/tmp
-      - YARN_CONF_mapreduce_jobhistory_done___dir=/mr-history/done
-      # Explicitly add this to ensure the DataNode can find the NameNode's RPC port
-      - HDFS_CONF_dfs_namenode_rpc_address=namenode:9000
+      - YARN_CONF_mapreduce_jobhistory_intermediate_done_dir=/mr-history/tmp
+      - YARN_CONF_mapreduce_jobhistory_done_dir=/mr-history/done
     ports:
       - "19888:19888"
       - "10020:10020"
@@ -180,19 +178,20 @@ services:
     image: bitnami/spark:3.5.0
     hostname: spark-master
     environment:
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - SPARK_MODE=master
       - SPARK_MASTER_HOST=spark-master
       - SPARK_MASTER_PORT_NUMBER=7077
       - SPARK_MASTER_WEBUI_PORT=8080
       - SPARK_DAEMON_MEMORY=1g
-      # Explicitly add this to ensure the DataNode can find the NameNode's RPC port
-      - HDFS_CONF_dfs_namenode_rpc_address=namenode:9000
+      # Added HADOOP_CONF_DIR for HDFS access
+      - HADOOP_CONF_DIR=/opt/bitnami/spark/conf/hadoop
     ports:
       - "8080:8080"
       - "7077:7077"
     volumes:
       - ./configs/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
+      # Mount HDFS config for Spark
+      - ./configs/hadoop:/opt/bitnami/spark/conf/hadoop:ro
       - spark_events:/tmp/spark-events
     networks:
       - spark-net
@@ -210,15 +209,18 @@ services:
   spark-worker:
     image: bitnami/spark:3.5.0
     environment:
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=2g
       - SPARK_WORKER_CORES=2
       - SPARK_WORKER_WEBUI_PORT=8081
       - SPARK_DAEMON_MEMORY=1g
+      # Added HADOOP_CONF_DIR for HDFS access
+      - HADOOP_CONF_DIR=/opt/bitnami/spark/conf/hadoop
     volumes:
       - ./configs/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
+      # Mount HDFS config for Spark
+      - ./configs/hadoop:/opt/bitnami/spark/conf/hadoop:ro
       - spark_events:/tmp/spark-events
     networks:
       - spark-net
@@ -242,16 +244,17 @@ services:
     image: bitnami/spark:3.5.0
     hostname: spark-history
     environment:
-      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - SPARK_MODE=history-server
       - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=hdfs://namenode:9000/tmp/spark-events
-      # Explicitly add this to ensure the DataNode can find the NameNode's RPC port
-      - HDFS_CONF_dfs_namenode_rpc_address=namenode:9000
+      # Added HADOOP_CONF_DIR for HDFS access
+      - HADOOP_CONF_DIR=/opt/bitnami/spark/conf/hadoop
     ports:
       - "18080:18080"
     volumes:
       - ./configs/spark-defaults.conf:/opt/bitnami/spark/conf/spark-defaults.conf:ro
-      - spark_events:/tmp/spark-events
+      # Mount HDFS config for Spark
+      - ./configs/hadoop:/opt/bitnami/spark/conf/hadoop:ro
+      # Removed local volume mount as logs are read from HDFS
     networks:
       - spark-net
     depends_on:
