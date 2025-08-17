@@ -12,7 +12,6 @@
         <name>dfs.webhdfs.enabled</name>
         <value>true</value>
     </property>
-    <!-- ADD THESE PROPERTIES -->
     <property>
         <name>dfs.namenode.name.dir</name>
         <value>/opt/hadoop/data/namenode</value>
@@ -20,5 +19,13 @@
     <property>
         <name>dfs.datanode.data.dir</name>
         <value>/opt/hadoop/data/datanode</value>
+    </property>
+    <property>
+        <name>dfs.namenode.rpc-address</name>
+        <value>namenode:9000</value>
+    </property>
+    <property>
+        <name>dfs.namenode.http-address</name>
+        <value>namenode:9870</value>
     </property>
 </configuration>
