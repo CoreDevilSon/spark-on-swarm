@@ -16,7 +16,7 @@ services:
       - "9000:9000"
     volumes:
       - namenode_data:/hadoop/dfs/name
-      - ./configs/hadoop/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
+      - ./configs/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
     networks:
       - spark-net
     deploy:
@@ -38,7 +38,7 @@ services:
       - SERVICE_PRECONDITION=namenode:9870
     volumes:
       - datanode_data:/hadoop/dfs/data
-      - ./configs/hadoop/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
+      - ./configs/hdfs-site.xml:/etc/hadoop/hdfs-site.xml
     networks:
       - spark-net
     depends_on:
