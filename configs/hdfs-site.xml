@@ -2,7 +2,7 @@
 <configuration>
     <property>
         <name>dfs.replication</name>
-        <value>2</value>
+        <value>1</value>
     </property>
     <property>
         <name>dfs.permissions.enabled</name>
@@ -11,5 +11,14 @@
     <property>
         <name>dfs.webhdfs.enabled</name>
         <value>true</value>
+    </property>
+    <!-- ADD THESE PROPERTIES -->
+    <property>
+        <name>dfs.namenode.name.dir</name>
+        <value>/opt/hadoop/data/namenode</value>
+    </property>
+    <property>
+        <name>dfs.datanode.data.dir</name>
+        <value>/opt/hadoop/data/datanode</value>
     </property>
 </configuration>
