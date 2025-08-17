@@ -41,6 +41,8 @@ services:
       - HDFS_CONF_dfs_permissions_enabled=false
       - HDFS_CONF_dfs_namenode_datanode_registration_ip___hostname___check=false
       - HDFS_CONF_dfs_replication=2
+      # Explicitly add this to ensure the DataNode can find the NameNode's RPC port
+      - HDFS_CONF_dfs_namenode_rpc_address=namenode:9000
     volumes:
       - datanode_data:/hadoop/dfs/data
     networks:
@@ -82,6 +84,8 @@ services:
       - YARN_CONF_yarn_nodemanager_vmem___check___enabled=false
       - YARN_CONF_mapreduce_map_output_compress=true
       - YARN_CONF_mapred_map_output_compress_codec=org.apache.hadoop.io.compress.SnappyCodec
+      # Explicitly add this to ensure the DataNode can find the NameNode's RPC port
+      - HDFS_CONF_dfs_namenode_rpc_address=namenode:9000
     ports:
       - "8088:8088"
       - "8032:8032"
@@ -120,6 +124,8 @@ services:
       - YARN_CONF_mapreduce_map_output_compress=true
       - YARN_CONF_mapred_map_output_compress_codec=org.apache.hadoop.io.compress.SnappyCodec
       - YARN_CONF_yarn_nodemanager_vmem___check___enabled=false
+      # Explicitly add this to ensure the DataNode can find the NameNode's RPC port
+      - HDFS_CONF_dfs_namenode_rpc_address=namenode:9000
     volumes:
       - yarn_logs:/opt/hadoop/logs/userlogs
     networks:
@@ -151,6 +157,8 @@ services:
       - YARN_CONF_mapreduce_jobhistory_webapp_address=0.0.0.0:19888
       - YARN_CONF_mapreduce_jobhistory_intermediate___done___dir=/mr-history/tmp
       - YARN_CONF_mapreduce_jobhistory_done___dir=/mr-history/done
+      # Explicitly add this to ensure the DataNode can find the NameNode's RPC port
+      - HDFS_CONF_dfs_namenode_rpc_address=namenode:9000
     ports:
       - "19888:19888"
       - "10020:10020"
@@ -172,11 +180,14 @@ services:
     image: bitnami/spark:3.5.0
     hostname: spark-master
     environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - SPARK_MODE=master
       - SPARK_MASTER_HOST=spark-master
       - SPARK_MASTER_PORT_NUMBER=7077
       - SPARK_MASTER_WEBUI_PORT=8080
       - SPARK_DAEMON_MEMORY=1g
+      # Explicitly add this to ensure the DataNode can find the NameNode's RPC port
+      - HDFS_CONF_dfs_namenode_rpc_address=namenode:9000
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -199,6 +210,7 @@ services:
   spark-worker:
     image: bitnami/spark:3.5.0
     environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark-master:7077
       - SPARK_WORKER_MEMORY=2g
@@ -230,8 +242,11 @@ services:
     image: bitnami/spark:3.5.0
     hostname: spark-history
     environment:
+      - CORE_CONF_fs_defaultFS=hdfs://namenode:9000
       - SPARK_MODE=history-server
       - SPARK_HISTORY_OPTS=-Dspark.history.fs.logDirectory=hdfs://namenode:9000/tmp/spark-events
+      # Explicitly add this to ensure the DataNode can find the NameNode's RPC port
+      - HDFS_CONF_dfs_namenode_rpc_address=namenode:9000
     ports:
       - "18080:18080"
     volumes:
