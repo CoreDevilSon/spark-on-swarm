@@ -1,31 +1,15 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <property>
-        <name>dfs.replication</name>
-        <value>1</value>
-    </property>
-    <property>
-        <name>dfs.permissions.enabled</name>
-        <value>false</value>
-    </property>
-    <property>
-        <name>dfs.webhdfs.enabled</name>
-        <value>true</value>
-    </property>
-    <property>
-        <name>dfs.namenode.name.dir</name>
-        <value>/opt/hadoop/data/namenode</value>
-    </property>
-    <property>
-        <name>dfs.datanode.data.dir</name>
-        <value>/opt/hadoop/data/datanode</value>
-    </property>
-    <property>
-        <name>dfs.namenode.rpc-address</name>
-        <value>namenode:9000</value>
-    </property>
-    <property>
-        <name>dfs.namenode.http-address</name>
-        <value>namenode:9870</value>
-    </property>
+  <property><name>dfs.blocksize</name><value>268435456</value></property>
+  <property><name>dfs.webhdfs.enabled</name><value>true</value></property>
+  <property><name>dfs.replication</name><value>2</value></property>
+  <property><name>dfs.permissions.enabled</name><value>false</value></property>
+  <property><name>dfs.namenode.name.dir</name><value>/hadoop/dfs/name</value></property>
+  <property><name>dfs.namenode.datanode.registration.ip_hostname_check</name><value>false</value></property>
+  <property><name>dfs.namenode.rpc-bind-host</name><value>0.0.0.0</value></property>
+  <property><name>dfs.namenode.servicerpc-bind-host</name><value>0.0.0.0</value></property>
+  <property><name>dfs.namenode.http-bind-host</name><value>0.0.0.0</value></property>
+  <property><name>dfs.namenode.https-bind-host</name><value>0.0.0.0</value></property>
+  <property><name>dfs.client.use.datanode.hostname</name><value>true</value></property>
+  <property><name>dfs.datanode.use.datanode.hostname</name><value>true</value></property>
 </configuration>
